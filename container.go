@@ -5,6 +5,10 @@ import (
 	"time"
 )
 
+var (
+	Default *Container
+)
+
 type (
 	EachHandler func(*Bulk)
 	Container   struct {
@@ -97,4 +101,8 @@ func (c *Container) Each(handler EachHandler) {
 	for _, b := range c.bulks {
 		handler(b.GetAliveInBulk())
 	}
+}
+
+func init() {
+	Default = NewContainer()
 }
