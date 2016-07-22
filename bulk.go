@@ -32,7 +32,7 @@ type (
 func NewDefaultBulkConfig() *BulkConfig {
 	return &BulkConfig{
 		MaxItem:      (1 << 16) - 1,
-		Eliminate:    time.Duration(3),
+		Eliminate:    time.Duration(time.Second * 3),
 		EnabledCache: false,
 	}
 }
