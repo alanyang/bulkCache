@@ -15,6 +15,7 @@ type (
 		Config    *BulkConfig
 		cache     map[string]*Item
 		items     []*Item
+		stop      bool
 	}
 
 	BulkConfig struct {
@@ -24,7 +25,7 @@ type (
 	}
 
 	Item struct {
-		Data   interface{}
+		Data   []byte
 		Expire time.Time
 	}
 )
@@ -62,11 +63,12 @@ func NewBulkFromItems(cfg *BulkConfig, its []*Item) *Bulk {
 }
 
 // expired by pre nanosecond
-func (b *Bulk) Add(key string, value interface{}, expire time.Duration) error {
+func (b *Bulk) Add(key string, value []byte, expire time.Duration) error {
 	if b.Len() > b.Config.MaxItem {
 		return errors.New("")
 	}
 	b.Mut.Lock()
+	defer b.Analytics.Add(value)
 	defer b.Mut.Unlock()
 	f := time.Now().Add(expire)
 	i := &Item{Data: value, Expire: f}
@@ -79,6 +81,7 @@ func (b *Bulk) Add(key string, value interface{}, expire time.Duration) error {
 
 func (b *Bulk) Get(key string) *Item {
 	b.Mut.RLock()
+	defer b.Analytics.Get()
 	defer b.Mut.Unlock()
 	i, ok := b.cache[key]
 	if !ok {
@@ -130,7 +133,7 @@ func (b *Bulk) String() string {
 }
 
 func (b *Bulk) Eliminate() {
-	for {
+	for !b.stop {
 		<-time.After(b.Config.Eliminate)
 		n := time.Now()
 		es := []*Item{}
@@ -160,4 +163,8 @@ func (b *Bulk) Eliminate() {
 			}
 		}
 	}
+}
+
+func (b *Bulk) Stop() {
+	b.stop = true
 }

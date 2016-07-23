@@ -14,23 +14,20 @@ var (
 func Delete(ctx *iris.Context) {
 	id := ctx.Param("id")
 	Default.Remove(id)
-	ctx.JSON(200, iris.Map{"status": 0})
+	ctx.JSON(200, iris.Map{"result": 0})
 }
 
 func Get(ctx *iris.Context) {
 	id := ctx.Param("id")
 	items, ok := Default.Get(id)
 	if !ok {
-		ctx.JSON(200, iris.Map{"status": 1})
+		ctx.JSON(200, iris.Map{"result": 1})
 	}
 	its := []interface{}{}
 	for _, i := range items {
-		d, ok := i.Data.([]byte)
-		if ok {
-			its = append(its, string(d))
-		}
+		its = append(its, string(i.Data))
 	}
-	ctx.JSON(200, iris.Map{"status": 0, "items": its})
+	ctx.JSON(200, iris.Map{"result": 0, "items": its})
 }
 
 func Post(ctx *iris.Context) {
@@ -40,12 +37,37 @@ func Post(ctx *iris.Context) {
 	ex := ctx.FormValue("expire")
 	expire, err := strconv.Atoi(string(ex))
 	if err != nil {
-		ctx.JSON(200, iris.Map{"status": 1})
+		ctx.JSON(200, iris.Map{"result": 1})
 		return
 	}
 	Default.Add(id, string(name), value, time.Duration(expire)*time.Second)
 
-	ctx.JSON(200, iris.Map{"status": 0})
+	ctx.JSON(200, iris.Map{"result": 0})
+}
+
+func Status(ctx *iris.Context) {
+	ctx.JSON(200, iris.Map{
+		"result": 0,
+		"status": map[string]interface{}{
+			"memory":  Default.Analytics.Memories,
+			"queries": Default.Analytics.Queries,
+		}})
+}
+
+func BulkStatus(ctx *iris.Context) {
+	bulk, ok := Default.GetBulk(ctx.Param("id"))
+	if !ok {
+		ctx.JSON(200, iris.Map{
+			"result": 1,
+		})
+		return
+	}
+	ctx.JSON(200, iris.Map{
+		"result": 0,
+		"status": map[string]interface{}{
+			"memory":  bulk.Analytics.Memories,
+			"queries": bulk.Analytics.Queries,
+		}})
 }
 
 func init() {
@@ -55,5 +77,11 @@ func init() {
 		p.Get("/:id", Get)
 		p.Post("/:id", Post)
 		p.Delete("/:id", Delete)
+	}
+
+	s := HttpApi.Party("/status")
+	{
+		s.Get("/", Status)
+		s.Get("/:id", BulkStatus)
 	}
 }

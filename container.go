@@ -34,6 +34,7 @@ func (c *Container) GetBulk(key string) (bulk *Bulk, ok bool) {
 }
 
 func (c *Container) Get(key string) (its []*Item, ok bool) {
+	defer c.Analytics.Get()
 	b, ok := c.GetBulk(key)
 	if !ok {
 		return []*Item{}, false
@@ -64,7 +65,8 @@ func (c *Container) AddBulk(key string, cfg *BulkConfig) *Bulk {
 	return b
 }
 
-func (c *Container) Add(key, sub string, value interface{}, expire time.Duration) error {
+func (c *Container) Add(key, sub string, value []byte, expire time.Duration) error {
+	defer c.Analytics.Add(value)
 	var bulk *Bulk
 	if !c.Has(key) {
 		bulk = c.AddBulk(key, nil)
@@ -85,6 +87,10 @@ func (c *Container) Has(key string) bool {
 func (c *Container) Remove(key string) {
 	c.Mut.Lock()
 	defer c.Mut.Unlock()
+	bulk, ok := c.GetBulk(key)
+	if ok {
+		bulk.Stop()
+	}
 	delete(c.bulks, key)
 }
 
@@ -94,7 +100,7 @@ func (c *Container) Flush() {
 	c.bulks = map[string]*Bulk{}
 }
 
-//only for debug
+//just for debug
 func (c *Container) Each(handler EachHandler) {
 	c.Mut.RLock()
 	defer c.Mut.RUnlock()
