@@ -6,8 +6,8 @@ import (
 
 type (
 	Analytics struct {
-		Queries  uint64
-		Memories uint64
+		Queries  int64
+		Memories int64
 	}
 )
 
@@ -16,9 +16,13 @@ func NewAnalytics() *Analytics {
 }
 
 func (a *Analytics) Add(data []byte) {
-	atomic.AddUint64(&a.Memories, uint64(len(data)))
+	atomic.AddInt64(&a.Memories, int64(len(data)))
 }
 
 func (a *Analytics) Get() {
-	atomic.AddUint64(&a.Queries, 1)
+	atomic.AddInt64(&a.Queries, 1)
+}
+
+func (a *Analytics) Expired(data []byte) {
+	atomic.AddInt64(&a.Memories, -int64(len(data)))
 }

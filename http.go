@@ -51,7 +51,8 @@ func Status(ctx *iris.Context) {
 		"status": map[string]interface{}{
 			"memory":  Default.Analytics.Memories,
 			"queries": Default.Analytics.Queries,
-		}})
+		},
+	})
 }
 
 func BulkStatus(ctx *iris.Context) {
@@ -67,7 +68,8 @@ func BulkStatus(ctx *iris.Context) {
 		"status": map[string]interface{}{
 			"memory":  bulk.Analytics.Memories,
 			"queries": bulk.Analytics.Queries,
-		}})
+		},
+	})
 }
 
 func init() {
