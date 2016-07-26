@@ -12,7 +12,7 @@ func Test_Bulk(t *testing.T) {
 	for i := 0; i < n; i++ {
 		key := fmt.Sprintf("key:%d", i)
 		val := fmt.Sprintf("value:%d", i)
-		b.Add(key, val, time.Second*time.Duration(i+1))
+		b.Add(key, []byte(val), time.Second*time.Duration(i+1))
 	}
 	t.Log(b.String())
 	t.Log("===========ADD DATA==========")

@@ -12,7 +12,7 @@ func Test_Container(t *testing.T) {
 	n := 10 //10 item pre bulk
 	for j := 0; j < m; j++ {
 		for i := 0; i < n; i++ {
-			c.Add(fmt.Sprintf("Video %d", j), fmt.Sprint(i), fmt.Sprintf("Tag %d", i), time.Second*time.Duration(i*j))
+			c.Add(fmt.Sprintf("Video %d", j), fmt.Sprint(i), []byte(fmt.Sprintf("Tag %d", i)), time.Second*time.Duration(i*j))
 		}
 	}
 

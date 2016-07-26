@@ -109,6 +109,17 @@ func (c *Container) Each(handler EachHandler) {
 	}
 }
 
+func (c *Container) master() {
+	for {
+		<-time.After(time.Second * 3)
+		for k, v := range c.bulks {
+			if v.Len() == 0 {
+				c.Remove(k)
+			}
+		}
+	}
+}
+
 func init() {
 	Default = NewContainer()
 }
