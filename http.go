@@ -1,10 +1,9 @@
 package bulkCache
 
 import (
+	"github.com/kataras/iris"
 	"strconv"
 	"time"
-
-	"github.com/kataras/iris"
 )
 
 var (

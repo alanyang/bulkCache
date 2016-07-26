@@ -19,18 +19,20 @@ type (
 )
 
 func NewContainer() *Container {
-	return &Container{
+	c := &Container{
 		Mut:       new(sync.RWMutex),
 		Analytics: &Analytics{},
 		bulks:     make(map[string]*Bulk),
 	}
+	go c.master()
+	return c
 }
 
-func (c *Container) GetBulk(key string) (bulk *Bulk, ok bool) {
+func (c *Container) GetBulk(key string) (*Bulk, bool) {
 	c.Mut.RLock()
 	defer c.Mut.RUnlock()
-	bulk, ok = c.bulks[key]
-	return
+	bulk, ok := c.bulks[key]
+	return bulk, ok
 }
 
 func (c *Container) Get(key string) (its []*Item, ok bool) {
@@ -85,12 +87,12 @@ func (c *Container) Has(key string) bool {
 }
 
 func (c *Container) Remove(key string) {
-	c.Mut.Lock()
-	defer c.Mut.Unlock()
 	bulk, ok := c.GetBulk(key)
 	if ok {
 		bulk.Stop()
 	}
+	c.Mut.Lock()
+	defer c.Mut.Unlock()
 	delete(c.bulks, key)
 }
 
