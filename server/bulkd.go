@@ -5,5 +5,8 @@ import (
 )
 
 func main() {
-	cache.HttpApi.Listen(":1128")
+	go cache.HttpApi.Listen(":1128")
+	go cache.DageApi.Listen(":2345")
+
+	<-(chan int)(nil)
 }
