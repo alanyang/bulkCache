@@ -1,8 +1,11 @@
 package bulkCache
 
 import (
+	"fmt"
 	"sync"
 	"time"
+
+	log "github.com/Sirupsen/logrus"
 )
 
 var (
@@ -15,14 +18,23 @@ type (
 		Mut       *sync.RWMutex
 		Analytics *Analytics
 		bulks     map[string]*Bulk
+		Log       *log.Entry
+		Name      string
 	}
 )
 
-func NewContainer() *Container {
+func NewContainer(name string) *Container {
+	if name == "" {
+		name = "Default"
+	}
 	c := &Container{
 		Mut:       new(sync.RWMutex),
 		Analytics: &Analytics{},
+		Name:      name,
 		bulks:     make(map[string]*Bulk),
+		Log: log.WithFields(log.Fields{
+			"Store Engine": fmt.Sprintf("%s Container", name),
+		}),
 	}
 	go c.master()
 	return c
@@ -39,6 +51,7 @@ func (c *Container) Get(key string) (its []*Item, ok bool) {
 	defer c.Analytics.Get()
 	b, ok := c.GetBulk(key)
 	if !ok {
+		c.Log.Warning(fmt.Sprintf("Bulk %s is empty", key))
 		return []*Item{}, false
 	}
 	return b.GetAlive(), true
@@ -123,5 +136,5 @@ func (c *Container) master() {
 }
 
 func init() {
-	Default = NewContainer()
+	Default = NewContainer("")
 }
