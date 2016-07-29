@@ -7,7 +7,7 @@ import (
 )
 
 func Test_Container(t *testing.T) {
-	c := NewContainer()
+	c := NewContainer("Default", BTreeEngine)
 	m := 3  //3 bulk
 	n := 10 //10 item pre bulk
 	for j := 0; j < m; j++ {
@@ -19,7 +19,7 @@ func Test_Container(t *testing.T) {
 	time.Sleep(time.Second * 4)
 	t.Log("After 4 second bulks")
 
-	c.Each(func(bulk *Bulk) {
+	c.Each(func(bulk Bulk) {
 		t.Log(bulk.String())
 	})
 }

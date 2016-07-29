@@ -84,11 +84,13 @@ func (d *Dage) Heart() {
 	for {
 		<-time.After(time.Second)
 		now := time.Now().Unix()
-		for _, cli := range d.Clients {
+		for i, cli := range d.Clients {
 			if now-cli.Last > GiveUpTime {
 				// shutdown connection
 				d.Log.Warning(fmt.Sprintf("Dage client %s timeout", cli.Conn.RemoteAddr().String()))
 				cli.Conn.Close()
+				d.Clients = append(d.Clients[0:i], d.Clients[i+1:]...)
+				break
 			}
 		}
 	}

@@ -101,8 +101,8 @@ func (h *EchoHttpServer) BulkStatus(ctx echo.Context) error {
 	return ctx.JSON(200, Data{
 		"result": 0,
 		"status": Data{
-			"memory":  bulk.Analytics.Memories,
-			"queries": bulk.Analytics.Queries,
+			"memory":  bulk.Analytics().Memories,
+			"queries": bulk.Analytics().Queries,
 		},
 	})
 }
