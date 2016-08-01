@@ -13,12 +13,12 @@ import (
 )
 
 const (
-	Ping    = "Ping"
-	Pong    = "Pong"
-	Set     = "Set"
-	GET     = "Get"
-	Remove  = "Remove"
-	Quit    = "Quit"
+	Ping    = "PING"
+	Pong    = "PONG"
+	Set     = "SET"
+	GET     = "GET"
+	Remove  = "REMOVE"
+	Quit    = "QUIT"
 	Success = "Success"
 	Failure = "Failure"
 )
@@ -116,23 +116,24 @@ func (d *Dage) Handle(cli *Client) {
 func (d *Dage) Command(cmd []string, cli *Client) string {
 	cli.Last = time.Now().Unix()
 	resp := []string{}
-	if len(cmd) == 0 {
+	if len(cmd) <= 1 {
 		d.Log.Warning("Invalid protocol")
 		return ""
 	}
-	c := cmd[0]
-	switch c {
+	t := cmd[0]
+	c := cmd[1]
+	switch strings.ToUpper(c) {
 	case Ping:
-		resp = append(resp, Pong)
+		resp = append(resp, t, Pong)
 	case Quit:
 		cli.Conn.Write([]byte("Good luck!\n"))
 		cli.Conn.Close()
 	case Set:
-		resp = d.SetCommand(cmd[1:])
+		resp = d.SetCommand(t, cmd[2:])
 	case GET:
-		resp = d.GetCommand(cmd[1:])
+		resp = d.GetCommand(t, cmd[2:])
 	case Remove:
-		resp = d.RemoveCommand(cmd[1:])
+		resp = d.RemoveCommand(t, cmd[2:])
 	}
 	if len(resp) > 0 {
 		resp = append(resp, "\n")
@@ -142,7 +143,7 @@ func (d *Dage) Command(cmd []string, cli *Client) string {
 
 //params bulkname key value expire
 //response Success or Failure
-func (d *Dage) SetCommand(params []string) []string {
+func (d *Dage) SetCommand(tick string, params []string) []string {
 	if len(params) != 4 {
 		return []string{Failure}
 	}
@@ -154,12 +155,12 @@ func (d *Dage) SetCommand(params []string) []string {
 		return []string{Failure}
 	}
 	d.Log.Info(fmt.Sprintf("Add %d bytes to %s", len(params[2]), params[0]))
-	return []string{Success}
+	return []string{tick, Success}
 }
 
 //params bulkname
 //response value1 \t value2 \t value3
-func (d *Dage) GetCommand(params []string) []string {
+func (d *Dage) GetCommand(tick string, params []string) []string {
 	if len(params) != 1 {
 		return []string{""}
 	}
@@ -175,18 +176,18 @@ func (d *Dage) GetCommand(params []string) []string {
 	}
 	r := strings.Join(items, "\t\t")
 	d.Log.Info(fmt.Sprintf("From Bulk %s Get %d bytes data", params[0], bytes))
-	return []string{r}
+	return []string{tick, r}
 }
 
 //params bulkname
 //response Success or Failure
-func (d *Dage) RemoveCommand(params []string) []string {
+func (d *Dage) RemoveCommand(tick string, params []string) []string {
 	if len(params) != 1 {
 		return []string{Failure}
 	}
 	Default.Remove(params[0])
 	d.Log.Info(fmt.Sprintf("Deleted Bulk %s", params[0]))
-	return []string{Success}
+	return []string{tick, Success}
 }
 
 func init() {
